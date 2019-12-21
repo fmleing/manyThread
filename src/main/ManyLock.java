@@ -1,3 +1,4 @@
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -31,6 +32,10 @@ import java.util.concurrent.locks.ReentrantLock;
  *                   也即是说，线程可以进入任何一个它已经拥有的锁同步着的代码块。
  *   ReentrantLock/Synchronized就是一个典型的可重入锁
  *   可重入锁最大的作用就是避免思索
+ *
+ * 4 自旋锁
+ *    是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点
+ *    是循环会消耗CPU
  */
 
 public class ManyLock {
@@ -62,6 +67,63 @@ class MyReentrantLock{
 
         }finally {
             lock.unlock();
+        }
+    }
+}
+
+class UnReentantLock{
+    private AtomicReference<Thread> owner = new AtomicReference<>();
+
+    /**
+     * 获取锁
+     */
+    public void lock(){
+        Thread current = Thread.currentThread();
+        // 自旋锁实现，同样可以使用do while
+        //for (; ; ) {
+        //    if (!owner.compareAndSet(null, current)) {
+        //        return ;
+        //    }
+        //}
+        do {
+
+        } while (!owner.compareAndSet(null, current));
+        return;
+    }
+
+    /**
+     * 释放锁
+     */
+    public void unlock(){
+        Thread current = Thread.currentThread();
+        owner.compareAndSet(current, null);
+    }
+}
+
+class NumberReentrantLock{
+    private AtomicReference<Thread> owner = new AtomicReference<>();
+    private int lockNumber = 0;
+
+    public void lock(){
+        Thread current = Thread.currentThread();
+        // 使用== 表示是同一个引用
+        if (current == owner.get()) {
+            lockNumber++;
+            return;
+        }
+        do {
+
+        } while (!owner.compareAndSet(null, current));
+    }
+
+    public void unlock(){
+        Thread current = Thread.currentThread();
+        if (current == owner.get()) {
+            if (lockNumber == 0) {
+                owner.compareAndSet(current, null);
+            }else{
+                lockNumber--;
+            }
         }
     }
 }
