@@ -40,3 +40,28 @@ public class ManyLock {
 
     }
 }
+
+class MyReentrantLock{
+    private ReentrantLock lock = new ReentrantLock();
+
+    public void get(){
+        lock.lock();
+        try{
+            System.out.println("invoke get()");
+            set();
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    public void set(){
+        lock.lock();
+
+        try{
+            System.out.println("invoke set()");
+
+        }finally {
+            lock.unlock();
+        }
+    }
+}
