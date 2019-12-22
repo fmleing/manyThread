@@ -1,3 +1,5 @@
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,6 +38,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * 4 自旋锁
  *    是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点
  *    是循环会消耗CPU
+ * 5 独占锁（写锁）/ 共享锁（读锁） / 互斥锁 (读写）
+ *    独占锁：指该锁一次只能被一个线程所持有，ReentrantLock和Synchronized而言
+ *    都是独占锁。
+ *    共享锁：指该锁可被多个线程所持有
+ *        对ReentrantReadWriteLock其读锁是共享锁，其写锁是独占锁。
+ *        读锁的共享锁可保证并发读是非常高效的，读写，写读，写写都是互斥的。
+ *
+ *
  */
 
 public class ManyLock {
@@ -126,4 +136,62 @@ class NumberReentrantLock{
             }
         }
     }
+}
+
+class SpinLock{
+
+}
+
+class MyCache{
+    private volatile Map<String, Integer> map = new HashMap<>();
+
+    /**
+     * 放值
+     */
+    public void put(String key, Integer value) {
+        System.out.println("放入key:"+key+",value:"+value);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        map.put(key, value);
+        System.out.println("key"+key+"写入完成");
+    }
+
+    public void get(String key) {
+        System.out.println("获取key:"+key);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        map.get(key);
+        System.out.println("key:"+key+"获取完成");
+    }
+
+}
+
+class MyReadWriteLock{
+
+    public static void main(String[] args) {
+        //
+        MyCache myCache = new MyCache();
+        for (int i = 0; i < 100; i++) {
+            final int tempInt = i;
+            new Thread(()->{
+                myCache.put(String.valueOf(tempInt),tempInt);
+            },String.valueOf(i).toString()).start();
+
+        }
+
+        for (int i = 0; i < 100; i++) {
+            final int tempInt = i;
+            new Thread(()->{
+                myCache.get(String.valueOf(tempInt));
+            },String.valueOf(i).toString()).start();
+
+        }
+    }
+
 }
