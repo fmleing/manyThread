@@ -2,6 +2,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  *
@@ -145,29 +146,39 @@ class SpinLock{
 class MyCache{
     private volatile Map<String, Integer> map = new HashMap<>();
 
+    private ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
     /**
      * 放值
      */
     public void put(String key, Integer value) {
+        readWriteLock.writeLock().lock();
         System.out.println("放入key:"+key+",value:"+value);
         try {
             Thread.sleep(10);
+            map.put(key, value);
+            System.out.println("key"+key+"写入完成");
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }finally {
+            readWriteLock.writeLock().unlock();
         }
-        map.put(key, value);
-        System.out.println("key"+key+"写入完成");
+
     }
 
     public void get(String key) {
+        readWriteLock.readLock().lock();
         System.out.println("获取key:"+key);
         try {
             Thread.sleep(10);
+            map.get(key);
+            System.out.println("key:"+key+"获取完成");
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }finally {
+            readWriteLock.readLock().unlock();
         }
-        map.get(key);
-        System.out.println("key:"+key+"获取完成");
+
     }
 
 }
