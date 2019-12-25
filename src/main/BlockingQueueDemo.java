@@ -1,4 +1,6 @@
 import java.util.LinkedList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * 阻塞队列
@@ -25,6 +27,16 @@ import java.util.LinkedList;
  */
 public class BlockingQueueDemo {
     public static void main(String[] args) {
+
+    }
+
+    public static void blockingQueue(){
+        BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
+        blockingQueue.add("a");
+        blockingQueue.add("b");
+        blockingQueue.add("c");
+        // 这个会报错，因为队列边界是3
+        blockingQueue.add("d");
 
     }
 
