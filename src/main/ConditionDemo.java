@@ -5,6 +5,9 @@ class ShareData{
     private int number = 0;
     ReentrantLock lock = new ReentrantLock();
     Condition condition = lock.newCondition();
+    Condition c1 = lock.newCondition();
+    Condition c2 = lock.newCondition();
+    Condition c3 = lock.newCondition();
 
     /**
      * 加一操作
@@ -43,21 +46,99 @@ class ShareData{
             lock.unlock();
         }
     }
+
+    /**
+     * 打印5次
+     */
+    public void print5(){
+        lock.lock();
+        try {
+            while (number != 0) {
+                c1.await();
+            }
+            for (int i = 0; i < 5; i++) {
+                System.out.println(i);
+            }
+            number = 1;
+            c2.signal();
+        } catch (Exception e) {
+
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 打印10次
+     */
+    public void print10() {
+        lock.lock();
+        try {
+            while (number != 1) {
+                c2.await();
+            }
+            for (int i = 0; i < 10; i++) {
+                System.out.println(i);
+            }
+            number = 2;
+            c3.signal();
+        } catch (Exception e) {
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 打印15次
+     */
+    public void print15() {
+        lock.lock();
+        try {
+            while (number != 2) {
+                c3.await();
+            }
+            for (int i = 0; i < 15; i++) {
+                System.out.println(i);
+            }
+            number = 0;
+            c1.signal();
+        } catch (Exception e) {
+
+        } finally {
+            lock.unlock();
+        }
+    }
 }
 
 public class ConditionDemo {
 
     public static void main(String[] args) {
         ShareData shareData = new ShareData();
-        for (int i = 0; i < 5; i++) {
+        //for (int i = 0; i < 5; i++) {
+        //    new Thread(()->{
+        //        shareData.increment();
+        //    },"AA"+i).start();
+        //}
+        //for (int i = 0; i < 5; i++) {
+        //    new Thread(()->{
+        //        shareData.decrement();
+        //    },"BB"+i).start();
+        //}
+
+        for (int i = 0; i < 10; i++) {
             new Thread(()->{
-                shareData.increment();
-            },"AA"+i).start();
-        }
-        for (int i = 0; i < 5; i++) {
+                shareData.print5();
+
+            }).start();
             new Thread(()->{
-                shareData.decrement();
-            },"BB"+i).start();
+                shareData.print10();
+
+            }).start();
+            new Thread(()->{
+                shareData.print15();
+
+            }).start();
         }
 
     }
